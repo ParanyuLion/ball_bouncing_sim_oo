@@ -3,15 +3,15 @@ import math
 import ball
 
 class Enemies:
-    def __init__(self, size, x, y, vx, vy, color, id=None):
+    def __init__(self, size, x, y, vx, vy, color, hp, id=None):
         self.size = size
         self.x = x
         self.y = y
         self.vx = vx
         self.vy = vy
         self.color = color
-        self.mass = 100 * size ** 2
         self.count = 0
+        self.hp = hp
         self.id = id
 
 

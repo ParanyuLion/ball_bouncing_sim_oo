@@ -13,8 +13,8 @@ class Ball:
         self.mass = 100 * size ** 2
         self.count = 0
         self.id = id
-        self.canvas_width = 550
-        self.canvas_height = 350
+        self.canvas_width = 350
+        self.canvas_height = 400
 
     def draw(self):
         # draw a circle of radius equals to size centered at (x, y) and paint it with color
