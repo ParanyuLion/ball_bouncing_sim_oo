@@ -11,6 +11,7 @@ import enemies
 import winsound
 import shop
 import boss
+import Player
 
 class BouncingSimulator:
     def __init__(self, num_balls):
@@ -30,12 +31,14 @@ class BouncingSimulator:
         self.enemies_move_time = 0
         self.enemies = []
         self.score = 0
-        self.HP = 5
+        self.HP = 10
         self.money = 0
         self.bullet_size = 10
         self.gun_state = 1
         self.boss_get_hit = 0
         self.boss_shoot_time = 0
+        self.parry_state = False
+        self.player_get_hit_time = 0
         print(self.canvas_width, self.canvas_height)
 
         ball_radius = 20
@@ -51,8 +54,11 @@ class BouncingSimulator:
             self.ball_list.append(ball.Ball(ball_radius, x, y, vx, vy, ball_color, i))
 
         tom = turtle.Turtle()
-        self.my_paddle = paddle.Paddle(200, 50, (255, 0, 0), tom)
-        self.my_paddle.set_location([1, -350])
+        player_turtle = turtle.Turtle()
+        self.my_paddle = paddle.Paddle(100, 30, (255, 0, 0), tom)
+        self.my_paddle.set_location([350, 950])
+        self.player = Player.Player(50, 50, 'red', player_turtle)
+        self.player.set_location([1, -350])
         self.boss = boss.Boss(100, 0, 300, 0, 10,'purple',4)
         for i in range(3):
             self.enemies.append((enemies.Enemies(50, random.randint(-250, 250), 300, 0, 10,
@@ -74,8 +80,10 @@ class BouncingSimulator:
     def kill_enemy(self):
         for j in range(len(self.enemies)):
             for i in range(len(self.ball_list)):
-                if abs(self.ball_list[i].x - self.enemies[j].x) < self.enemies[j].size*2 and (
-                        abs(self.ball_list[i].y - self.enemies[j].y) < self.enemies[j].size)*2:
+                if ((abs(self.ball_list[i].x - self.enemies[j].x) < self.enemies[j].size*2 and
+                     (abs(self.ball_list[i].y - self.enemies[j].y) < self.enemies[j].size*2)) or
+                        (abs(self.my_paddle.location[0] - self.enemies[j].x) < self.my_paddle.width and
+                         (abs(self.my_paddle.location[1] - self.enemies[j].y) < self.my_paddle.height*2))):
                     self.enemies[j].y = 700
                     self.enemies[j].x = random.randint(-250, 250)
                     self.score += 1
@@ -156,6 +164,8 @@ class BouncingSimulator:
         self.my_paddle.clear()
         self.__draw_border()
         self.my_paddle.draw()
+        self.player.clear()
+        self.player.draw()
         # self.enemies1.draw()
         self.boss.draw()
         for i in self.enemies:
@@ -173,33 +183,35 @@ class BouncingSimulator:
 
     # move_left and move_right handlers update paddle positions
     def move_left(self):
-        if (self.my_paddle.location[0] - self.my_paddle.width / 2 - 40) >= -self.canvas_width:
-            self.my_paddle.set_location([self.my_paddle.location[0] - 40, self.my_paddle.location[1]])
+        if (self.player.location[0] - self.player.width / 2 - 40) >= -self.canvas_width and not self.parry_state:
+            self.player.set_location([self.player.location[0] - 40, self.player.location[1]])
 
     # move_left and move_right handlers update paddle positions
     def move_right(self):
-        if (self.my_paddle.location[0] + self.my_paddle.width / 2 + 40) <= self.canvas_width:
-            self.my_paddle.set_location([self.my_paddle.location[0] + 40, self.my_paddle.location[1]])
+        if (self.player.location[0] + self.player.width / 2 + 40) <= self.canvas_width and not self.parry_state:
+            self.player.set_location([self.player.location[0] + 40, self.player.location[1]])
 
     def move_up(self):
-        if (self.my_paddle.location[1] + self.my_paddle.height / 2 + 40) <= self.canvas_height:
-            self.my_paddle.set_location([self.my_paddle.location[0], self.my_paddle.location[1] + 40])
+        if (self.player.location[1] + self.player.height / 2 + 40) <= self.canvas_height and not self.parry_state:
+            self.player.set_location([self.player.location[0], self.player.location[1] + 40])
 
     def move_down(self):
-        if (self.my_paddle.location[1] - self.my_paddle.height / 2 - 40) >= -self.canvas_height:
-            self.my_paddle.set_location([self.my_paddle.location[0], self.my_paddle.location[1] - 40])
+        if (self.player.location[1] - self.player.height / 2 - 40) >= -self.canvas_height and not self.parry_state:
+            self.player.set_location([self.player.location[0], self.player.location[1] - 40])
 
     def shoot_ball(self, mouse_x=None, mouse_y=None):
+        if self.parry_state:
+            return None
         turtle.update()
         current_time = time.time()
         if self.gun_state == 1:
             speed = 25 + (0.5 * self.score)
         else:
             speed = 25 + (1 * self.score)
-        if current_time - self.shot_time > 0.5 and self.HP > 0:
+        if current_time - self.shot_time > 0.7 and self.HP > 0:
             winsound.PlaySound("gun-gunshot-01.wav", winsound.SND_ASYNC)
-            x = self.my_paddle.location[0]
-            y = self.my_paddle.location[1] + self.my_paddle.height / 2 + self.bullet_size
+            x = self.player.location[0]
+            y = self.player.location[1] + self.player.height / 2 + self.bullet_size
             if mouse_x == x:  # Handle vertical shooting (x == x)
                 if mouse_y != y:
                     zeta = math.pi / 2
@@ -242,6 +254,16 @@ class BouncingSimulator:
                 self.enemies_move_time = current_time
                 self.kill_enemy()
 
+    def player_get_shoot(self):
+        current_time = time.time()
+        for i in self.ball_list:
+            if ((abs(i.x - self.player.location[0]) < self.player.width and
+                (abs(i.y - self.player.location[1]) < self.player.height)) and
+                    current_time-self.player_get_hit_time >= 0.5) and i.color == 'blue':
+                self.HP -= 1
+                self.__draw_hp(self.hp_turtle)
+                self.player_get_hit_time = current_time
+
     def shoot_boss(self):
         current_time = time.time()
         for i in self.ball_list:
@@ -251,24 +273,25 @@ class BouncingSimulator:
                 if self.boss.dead():
                     self.boss.y = -900
                     self.score += 10
+                    self.boss.alive = False
                     self.__draw_scores(self.jerry)
 
     def boss_shooting(self):
         turtle.update()
         current_time = time.time()
-        speed = 10
-        if current_time - self.boss_shoot_time > 1:
+        speed = 20
+        if current_time - self.boss_shoot_time > 1 and self.boss.alive:
             x = self.boss.x
             y = self.boss.y - 2*self.boss.size
-            if self.my_paddle.location[0] == x:  # Handle vertical shooting (x == x)
-                if self.my_paddle.location[1] != y:
+            if self.player.location[0] == x:  # Handle vertical shooting (x == x)
+                if self.player.location[1] != y:
                     zeta = math.pi / 2
                 else:
                     zeta = -math.pi / 2
             else:
-                zeta = math.atan((self.my_paddle.location[1] - y) / (self.my_paddle.location[0] - x))  # Calculate angle
+                zeta = math.atan((self.player.location[1] - y) / (self.player.location[0] - x))  # Calculate angle
 
-            if self.my_paddle.location[0] < x:
+            if self.player.location[0] < x:
                 vx = -(math.cos(zeta)) * speed
                 vy = -(math.sin(zeta)) * speed
             else:
@@ -308,7 +331,12 @@ class BouncingSimulator:
         tao.hideturtle()
 
     def parry(self):
-        pass
+        self.parry_state = True
+        self.my_paddle.location = [self.player.location[0], self.player.location[1]+50]
+
+    def release(self):
+        self.parry_state = False
+        self.my_paddle.location = [-900, 0]
 
     def run(self):
         # initialize pq with collision events and redraw event
@@ -323,6 +351,7 @@ class BouncingSimulator:
         self.screen.onkeypress(self.move_up, "w")
         self.screen.onkeypress(self.move_down, "s")
         self.screen.onkeypress(self.parry, "space")
+        self.screen.onkeyrelease(self.release, "space")
         self.screen.onclick(self.click)
 
         while (True):
@@ -337,6 +366,7 @@ class BouncingSimulator:
             self.enemies_move()
             self.shoot_boss()
             self.boss_shooting()
+            self.player_get_shoot()
             if self.HP < 1:
                 self.run_game_over()
                 break
@@ -364,7 +394,6 @@ class BouncingSimulator:
             self.__paddle_predict()
             # hold the window; close it by clicking the window close 'x' mark
         turtle.done()
-
 
 
 # num_balls = int(input("Number of balls to simulate: "))

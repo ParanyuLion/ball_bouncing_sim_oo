@@ -10,6 +10,7 @@ class Boss:
         self.count = 0
         self.hp = hp
         self.id = id
+        self.alive = True
 
     def get_hit(self, ball):
         if abs(ball.x - self.x) < self.size * 2 and (abs(ball.y - self.y) < self.size) * 2:
