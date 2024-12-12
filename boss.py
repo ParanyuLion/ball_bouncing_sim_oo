@@ -1,11 +1,11 @@
 import turtle
 class Boss:
-    def __init__(self, size, x, y, vx, vy, color, hp, id=None):
+    def __init__(self, size, color, hp, id=None):
         self.size = size
-        self.x = x
-        self.y = y
-        self.vx = vx
-        self.vy = vy
+        self.x = -900
+        self.y = 300
+        # self.vx = vx
+        # self.vy = vy
         self.color = color
         self.count = 0
         self.hp = hp

@@ -30,7 +30,7 @@ class BouncingSimulator:
         self.enemies_move_time = 0
         self.enemies = []
         self.score = 0
-        self.HP = 10
+        self.HP = 20
         self.money = 0
         self.bullet_size = 10
         self.gun_state = 1
@@ -58,7 +58,8 @@ class BouncingSimulator:
         self.my_paddle.set_location([350, 950])
         self.player = Player.Player(50, 50, 'red', player_turtle)
         self.player.set_location([1, -350])
-        self.boss = boss.Boss(100, 0, 300, 0, 10, 'purple', 4)
+        self.boss = boss.Boss(100, 'purple', 10, 4)
+        self.boss.alive = False
         for i in range(3):
             self.enemies.append((enemies.Enemies(50, random.randint(-250, 250), 300, 0, 10,
                                                  'green', 2)))
@@ -67,11 +68,12 @@ class BouncingSimulator:
         self.jerry = turtle.Turtle()
         self.hp_turtle = turtle.Turtle()
         self.boss_hp_turtle = turtle.Turtle()
+        self.boss_hp_turtle.hideturtle()
         self.money_turtle = turtle.Turtle()
         self.__draw_money(self.money_turtle)
         self.__draw_scores(self.jerry)
         self.__draw_hp(self.hp_turtle)
-        self.__draw_boss_hp(self.boss_hp_turtle)
+        # self.__draw_boss_hp(self.boss_hp_turtle)
         self.screen = turtle.Screen()
         self.shop_turtle = turtle.Turtle()
         self.shop_list = [shop.Shop(-650, -200, 'Better Gun', 3500, self.shop_turtle),
@@ -283,7 +285,7 @@ class BouncingSimulator:
                 self.boss_get_hit = current_time
                 self.__draw_boss_hp(self.boss_hp_turtle)
                 if self.boss.dead():
-                    self.boss.y = -900
+                    self.boss.x = -900
                     self.score += 10
                     self.boss.alive = False
                     self.__draw_scores(self.jerry)
@@ -291,7 +293,7 @@ class BouncingSimulator:
     def boss_shooting(self):
         turtle.update()
         current_time = time.time()
-        speed = 20
+        speed = 30
         if current_time - self.boss_shoot_time > 1 and self.boss.alive:
             x = self.boss.x
             y = self.boss.y - 2 * self.boss.size
@@ -309,7 +311,7 @@ class BouncingSimulator:
             else:
                 vx = (math.cos(zeta)) * speed
                 vy = (math.sin(zeta)) * speed
-            boss_ammo = ball.Ball(10, x, y, vx, vy, 'blue', len(self.ball_list))
+            boss_ammo = ball.Ball(15, x, y, vx, vy, 'blue', len(self.ball_list))
             self.ball_list.append(boss_ammo)
             self.__predict(boss_ammo)
             self.boss_shoot_time = current_time
@@ -379,8 +381,14 @@ class BouncingSimulator:
             self.shoot_boss()
             self.boss_shooting()
             self.player_get_shoot()
-            if self.score > 10:
+            if self.score in range(10, 13):
                 self.boss.alive = True
+                self.boss.x = 0
+            if self.score in range(150, 153):
+                self.boss.hp = 10
+                self.boss.alive = True
+                self.__draw_boss_hp(self.boss_hp_turtle)
+                self.boss.x = 0
             if self.HP < 1:
                 self.run_game_over()
                 break
