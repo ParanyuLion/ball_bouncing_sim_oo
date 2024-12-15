@@ -1,4 +1,3 @@
-import turtle
 class Shop:
     def __init__(self, x, y, name, price, turtle, state='available'):
         self.x = x
@@ -13,7 +12,7 @@ class Shop:
         self.turtle.hideturtle()
         self.turtle.penup()
         if self.state == 'available':
-            self.turtle.color("black")
+            self.turtle.color("white")
         else:
             self.turtle.color("red")
         self.turtle.goto(self.x, self.y)
@@ -30,5 +29,3 @@ class Shop:
         self.turtle.goto(self.x+20, self.y+35)
         self.turtle.pendown()
         self.turtle.write(f'{self.name}: ${self.price}', font=style)
-# shop = Shop(-400,-200,'dsfghiu',500)
-# shop.draw()

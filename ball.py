@@ -3,7 +3,7 @@ import math
 
 
 class Ball:
-    def __init__(self, size, x, y, vx, vy, color, id):
+    def __init__(self, size, x, y, vx, vy, color, _id):
         self.size = size
         self.x = x
         self.y = y
@@ -12,7 +12,7 @@ class Ball:
         self.color = color
         self.mass = 100 * size ** 2
         self.count = 0
-        self.id = id
+        self.id = _id
         self.canvas_width = 350
         self.canvas_height = 400
 
@@ -40,7 +40,7 @@ class Ball:
         dy = that.y - self.y
         dvx = that.vx - self.vx
         dvy = that.vy - self.vy
-        dvdr = dx * dvx + dy * dvy;  # dv dot dr
+        dvdr = dx * dvx + dy * dvy  # dv dot dr
         dist = self.size + that.size  # distance between particle centers at collison
 
         # magnitude of normal force

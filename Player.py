@@ -1,5 +1,5 @@
 class Player:
-    def __init__(self,width, height, color, my_turtle):
+    def __init__(self, width, height, color, my_turtle):
         self.width = width
         self.height = height
         self.location = [0, 0]

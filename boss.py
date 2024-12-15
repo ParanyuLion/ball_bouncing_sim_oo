@@ -1,15 +1,13 @@
 import turtle
+
+
 class Boss:
-    def __init__(self, size, color, hp, id=None):
+    def __init__(self, size, color, hp):
         self.size = size
         self.x = -900
         self.y = 300
-        # self.vx = vx
-        # self.vy = vy
         self.color = color
-        self.count = 0
         self.hp = hp
-        self.id = id
         self.alive = True
 
     def get_hit(self, ball):

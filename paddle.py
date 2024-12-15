@@ -31,7 +31,5 @@ class Paddle:
     def clear(self):
         self.my_turtle.clear()
 
-
-
     def __str__(self):
         return "paddle"
